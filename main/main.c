@@ -58,6 +58,17 @@ void trigger_task(void *p){
     }
 }
 
+void falha(){
+
+    ssd1306_init();
+    ssd1306_t disp;
+    gfx_init(&disp, 128, 32);
+    gfx_clear_buffer(&disp);
+    gfx_draw_string(&disp, 0, 0, 2, "FALHA");
+    gfx_show(&disp);
+
+}
+
 void echo_task(void *p) {
     gpio_init(echo_pin);
     gpio_set_dir(echo_pin, GPIO_IN);
@@ -73,6 +84,8 @@ void echo_task(void *p) {
         if (c == 0){
             if (xQueueReceive(xQueueTime, &start_time, pdMS_TO_TICKS(1000))) {
                 c = 1;
+            } else {
+                falha();
             }
         } else {
             if (xQueueReceive(xQueueTime, &end_time, pdMS_TO_TICKS(1000))){
@@ -80,6 +93,8 @@ void echo_task(void *p) {
                 int pulse_duration_us = (end_time - start_time);
                 int distance_cm = pulse_duration_us * 0.03403 / 2;
                 xQueueSend(xQueueDistance, &distance_cm, 0);
+            }else {
+                falha();
             }
         }
     }
